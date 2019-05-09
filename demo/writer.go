@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/arthurkiller/rollingWriter"
+	"github.com/chaomai/rollingWriter"
 )
 
 func main() {

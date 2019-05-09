@@ -27,6 +27,7 @@ type Writer struct {
 // write operate will be guaranteed by lock
 type LockedWriter struct {
 	Writer
+	lock sync.Mutex
 }
 
 // AsynchronousWriter provide a asynchronous writer with the writer to confirm the write
@@ -263,9 +264,9 @@ func (w *LockedWriter) Write(b []byte) (n int, err error) {
 	default:
 	}
 
-	fp := atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&w.file)))
-	file := (*os.File)(fp)
-	n, err = file.Write(b)
+	w.lock.Lock()
+	n, err = w.file.Write(b)
+	w.lock.Unlock()
 	return
 }
 
@@ -342,9 +343,9 @@ func (w *Writer) Close() error {
 
 // Close lock and close the file
 func (w *LockedWriter) Close() error {
-	fp := atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&w.file)))
-	file := (*os.File)(fp)
-	return file.Close()
+	w.lock.Lock()
+	defer w.lock.Unlock()
+	return w.file.Close()
 }
 
 // Close set closed and close the file
